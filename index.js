@@ -1,6 +1,7 @@
 const LexicalAnalyzer = require('./src/LexicalAnalyzer')
+const Parser = require('./src/Parser')
 
-const lex = new LexicalAnalyzer('31+4')
-lex.run()
+const lex = new LexicalAnalyzer('31+4 - (2 * 3 / 2)')
+const parser = new Parser(lex)
 
-console.log(lex.tokens)
+const res = parser.expr()

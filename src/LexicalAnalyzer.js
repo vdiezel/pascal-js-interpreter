@@ -4,22 +4,23 @@ const allowedOperators = [
   '-',
   '*',
   '/',
+  '(',
+  ')'
 ]
 
 class LexicalAnalyzer {
 
   constructor(text) {
-    this.text = text.replace(' ', '')
+    this.text = text
     this.currentChar = text[0]
     this.pos = 0
-    this.tokens = []
   }
 
   createToken(type, value) {
     return { type, value }
   }
 
-  next() {
+  nextChar() {
     this.pos += 1
     if (this.pos === this.text.length) {
       this.currentChar = null
@@ -37,16 +38,21 @@ class LexicalAnalyzer {
     throw new Error(`Syntax error at ${this.currentChar}`)
   }
 
-  grabFullNumber() {
+  skipWhiteSpaces() {
+    while (this.currentChar === ' ' && this.currentChar !== null) {
+      this.nextChar()
+    }
+  }
+
+  grabFullInteger() {
     // could be solved much shorter using regex but I don't know about performance here
     let res = ''
-    let foundDecimalSeperator = false
-    while (this.isDigitString(this.currentChar) || (this.currentChar === '.' && !foundDecimalSeperator) ) {
+    while (this.isDigitString(this.currentChar)) {
       if (this.currentChar === '.') {
         foundDecimalSeperator = true
       }
       res += this.currentChar
-      this.next()
+      this.nextChar()
     }
 
     return res
@@ -58,27 +64,33 @@ class LexicalAnalyzer {
       '-': TokenTypes.MINUS_OP,
       '*': TokenTypes.MULTIPLY_OP,
       '/': TokenTypes.DIVIDE_OP,
+      '(': TokenTypes.L_PAREN,
+      ')': TokenTypes.R_PAREN,
     }
   }
 
-  run() {
+  getNextToken() {
+
     while (this.currentChar !== null) {
 
-      if (this.isDigitString(this.currentChar)) {
-        this.tokens.push(this.createToken(TokenTypes.NUMBER, Number(this.grabFullNumber())))
+      if (this.currentChar === ' ') {
+        this.skipWhiteSpaces()
         continue
       }
 
+      if (this.isDigitString(this.currentChar)) 
+        return this.createToken(TokenTypes.NUMBER, Number(this.grabFullInteger()))
+
       if (allowedOperators.includes(this.currentChar)) {
-        this.tokens.push(this.createToken(TokenTypes.NUMBER, this.currentChar))
-        this.next()
-        continue
+        const op = this.currentChar
+        this.nextChar()
+        return this.createToken(this.getOperatorMap()[op], op)
       }
 
       this.error()
     }
 
-    this.tokens.push(this.createToken(TokenTypes.EOF, null))
+    return this.createToken(TokenTypes.EOF, null)
   }
 
 }
