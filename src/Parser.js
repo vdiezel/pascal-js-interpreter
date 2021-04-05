@@ -2,6 +2,7 @@ const { add, subtract, multiply, divide } = require('./operations')
 const TokenTypes = require('./TokenTypes')
 const BinOp = require('./BinOp')
 const Num = require('./Num')
+const UnaryOp = require('./UnaryOp')
 
 class Parser {
 
@@ -24,11 +25,20 @@ class Parser {
 
     factor() {
       const token = this.currentToken
-      if (token.type === TokenTypes.NUMBER) {
+
+      if (token.type === TokenTypes.PLUS_OP) {
+        this.consume(TokenTypes.PLUS_OP)
+        return new UnaryOp(token, this.factor())
+      }
+      else if (token.type === TokenTypes.MINUS_OP) {
+        this.consume(TokenTypes.MINUS_OP)
+        return new UnaryOp(token, this.factor())
+      }
+      else if (token.type === TokenTypes.NUMBER) {
         this.consume(TokenTypes.NUMBER)
         return new Num(token)
       }
-      else if (this.currentToken.type === TokenTypes.L_PAREN) {
+      else if (token.type === TokenTypes.L_PAREN) {
         this.consume(TokenTypes.L_PAREN)
         const node = this.expr()
         this.consume(TokenTypes.R_PAREN)
