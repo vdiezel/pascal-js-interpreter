@@ -9,6 +9,7 @@ class Interpreter extends NodeVisitor {
 
   interpret() {
     const tree = this.parser.parse()
+    console.log(tree)
     return this.visit(tree)
   }
 

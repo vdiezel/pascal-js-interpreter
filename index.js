@@ -1,10 +1,10 @@
 const Interpreter = require('./src/Interpreter')
 const LexicalAnalyzer = require('./src/LexicalAnalyzer')
 const Parser = require('./src/Parser')
+const RNPPrinter = require('./src/RNPPrinter')
 
-const lex = new LexicalAnalyzer('31+4 - (2 * 3 / 2)')
+const lex = new LexicalAnalyzer('(5 + 3) * 12 / 3')
 const parser = new Parser(lex)
-const interpreter = new Interpreter(parser)
-const res = interpreter.interpret()
+const tree = parser.parse()
+RNPPrinter.print(tree)
 
-console.log(res)
