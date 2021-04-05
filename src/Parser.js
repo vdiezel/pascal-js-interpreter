@@ -1,5 +1,7 @@
 const { add, subtract, multiply, divide } = require('./operations')
 const TokenTypes = require('./TokenTypes')
+const BinOp = require('./BinOp')
+const Num = require('./Num')
 
 class Parser {
 
@@ -24,45 +26,50 @@ class Parser {
       const token = this.currentToken
       if (token.type === TokenTypes.NUMBER) {
         this.consume(TokenTypes.NUMBER)
-        return token.value
+        return new Num(token)
       }
       else if (this.currentToken.type === TokenTypes.L_PAREN) {
         this.consume(TokenTypes.L_PAREN)
-        const res = this.expr()
+        const node = this.expr()
         this.consume(TokenTypes.R_PAREN)
-        return res
+        return node
       }
     }
 
     term() {
-      let res = this.factor()
+      let node = this.factor()
       while ([TokenTypes.DIVIDE_OP, TokenTypes.MULTIPLY_OP].includes(this.currentToken.type)) {
-        if (this.currentToken.type === TokenTypes.DIVIDE_OP) {
+        const token = this.currentToken
+        if (token.type === TokenTypes.DIVIDE_OP) {
           this.consume(TokenTypes.DIVIDE_OP) 
-          res = Math.round(res / this.factor()) // no support for floats yet
-        } else if (this.currentToken.type === TokenTypes.MULTIPLY_OP) {
+        } else if (token.type === TokenTypes.MULTIPLY_OP) {
           this.consume(TokenTypes.MULTIPLY_OP) 
-          res *= this.factor()
         }
+
+        node = new BinOp(node, token, this.factor())
       }
 
-      return res
+      return node
     }
 
     expr() {
-      let res = this.term()
+      let node = this.term()
       while ([TokenTypes.PLUS_OP, TokenTypes.MINUS_OP].includes(this.currentToken.type)) {
-        if (this.currentToken.type === TokenTypes.MINUS_OP) {
+        const token = this.currentToken
+        if (token.type === TokenTypes.MINUS_OP) {
           this.consume(TokenTypes.MINUS_OP) 
-          res -= this.term()
-        } else if (this.currentToken.type === TokenTypes.PLUS_OP) {
+        } else if (token.type === TokenTypes.PLUS_OP) {
           this.consume(TokenTypes.PLUS_OP) 
-          res += this.term()
         }
+
+        node = new BinOp(node, token, this.term())
       }
 
-      return res
+      return node
+    }
 
+    parse() {
+      return this.expr()
     }
 }
 
