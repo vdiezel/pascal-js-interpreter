@@ -16,6 +16,13 @@ class LexicalAnalyzer {
     this.pos = 0
   }
 
+  static get ALLOWED_KEYWORDS() {
+    return [
+      TokenTypes.BEGIN, 
+      TokenTypes.END,
+    ]
+  }
+
   createToken(type, value) {
     return { type, value }
   }
@@ -30,8 +37,16 @@ class LexicalAnalyzer {
 
   }
 
-  isDigitString(str) {
-    return /\d/.test(str)
+  isDigitString(char) {
+    return /\d/.test(char)
+  }
+
+  isAlphaNumeric(char) {
+    return /[0-9a-z]/i.test(char)
+  }
+
+  isAlphabeticalLetter(char) {
+    return /[a-z]/i.test(char)
   }
 
   error() {
@@ -48,9 +63,16 @@ class LexicalAnalyzer {
     // could be solved much shorter using regex but I don't know about performance here
     let res = ''
     while (this.isDigitString(this.currentChar)) {
-      if (this.currentChar === '.') {
-        foundDecimalSeperator = true
-      }
+      res += this.currentChar
+      this.nextChar()
+    }
+
+    return res
+  }
+
+  _id() {
+    let res = ''
+    while (this.isAlphaNumeric(this.currentChar)) {
       res += this.currentChar
       this.nextChar()
     }
@@ -69,9 +91,42 @@ class LexicalAnalyzer {
     }
   }
 
+  peak() {
+    const peekPos = this.pos + 1
+    if (peekPos > (this.text.length - 1)) {
+      return null
+    }
+    return this.text[peekPos]
+  }
+
   getNextToken() {
 
     while (this.currentChar !== null) {
+
+      if (this.isAlphabeticalLetter(this.currentChar)) {
+        const res = this._id()
+        if (LexicalAnalyzer.ALLOWED_KEYWORDS.includes(res)) {
+          return this.createToken(res, res)
+        }
+
+        return this.createToken(TokenTypes.ID, res)
+      }
+
+      if (this.currentChar === ':' && this.peak() === '=') {
+        this.nextChar()
+        this.nextChar()
+        return this.createToken(TokenTypes.ASSIGN, ':=')
+      }
+
+      if (this.currentChar === ';') {
+        this.nextChar()
+        return this.createToken(TokenTypes.SEMI, ';')
+      }
+
+      if (this.currentChar === '.') {
+        this.nextChar()
+        return this.createToken(TokenTypes.DOT, '.')
+      }
 
       if (this.currentChar === ' ') {
         this.skipWhiteSpaces()

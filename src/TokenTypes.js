@@ -6,5 +6,11 @@ module.exports = {
     DIVIDE_OP: 'DIVIDE_OP',
     L_PAREN: 'L_PAREN',
     R_PAREN: 'R_PAREN',
+    END: 'END',
+    BEGIN: 'BEGIN',
+    DOT: 'DOT',
+    ASSIGN: 'ASSIGN',
+    SEMI: 'SEMI',
+    ID: 'ID',
     EOF: 'EOF',
 }

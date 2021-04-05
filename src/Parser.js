@@ -1,8 +1,12 @@
-const { add, subtract, multiply, divide } = require('./operations')
 const TokenTypes = require('./TokenTypes')
 const BinOp = require('./BinOp')
 const Num = require('./Num')
 const UnaryOp = require('./UnaryOp')
+const Compound = require('./Compound')
+const Assign = require('./Assign')
+const NoOp = require('./NoOp')
+const Var = require('./Var')
+const ADT = require('./ADT')
 
 class Parser {
 
@@ -12,7 +16,67 @@ class Parser {
     }
 
     error() {
-      throw new Error(`Parse error at ${this.currentToken}`)
+      throw new Error(`Parse error at "${this.currentToken.type}" - position ${this.lexer.pos}`)
+    }
+
+    program() {
+      const node = this.compoundStatement()
+      this.consume(TokenTypes.DOT)
+      return node
+    }
+
+    compoundStatement() {
+      this.consume(TokenTypes.BEGIN)
+      const nodes = this.statementList()
+      this.consume(TokenTypes.END)
+      
+      const compound = new Compound()
+      compound.children = nodes
+
+      return compound
+    }
+
+    statementList() {
+      const node = this.statement()
+      const results = [ node ]
+
+      while (this.currentToken.type === TokenTypes.SEMI) {
+        this.consume(TokenTypes.SEMI)
+        results.push(this.statement())
+      }
+
+      if (this.currentToken.type === TokenTypes.ID) {
+        this.error()
+      }
+
+      return results
+    }
+
+    statement() {
+      if (this.currentToken.type === TokenTypes.BEGIN) {
+          return this.compoundStatement()
+      } else if (this.currentToken.type === TokenTypes.ID) {
+          return this.assignmentStatement()
+      } else {
+        return this.empty()
+      }
+    }
+
+    assignmentStatement() {
+      const left = this.variable()
+      const token = this.currentToken
+      this.consume(TokenTypes.ASSIGN)
+      return new Assign(left, token, this.expr())
+    }
+
+    variable() {
+      const node = new Var(this.currentToken)
+      this.consume(TokenTypes.ID)
+      return node
+    }
+
+    empty() {
+      return new NoOp()
     }
 
     consume(tokenType) {
@@ -43,6 +107,8 @@ class Parser {
         const node = this.expr()
         this.consume(TokenTypes.R_PAREN)
         return node
+      } else if (TokenTypes.ID) {
+        return this.variable()
       }
     }
 
@@ -79,7 +145,11 @@ class Parser {
     }
 
     parse() {
-      return this.expr()
+      const node = this.program()
+      if (this.currentToken.type !== TokenTypes.EOF)
+        this.error()
+
+      return node
     }
 }
 
