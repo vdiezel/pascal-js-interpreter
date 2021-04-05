@@ -49,6 +49,8 @@ class LexicalAnalyzer {
     return /[a-z]/i.test(char)
   }
 
+  isUnderScore(char) { return char === '_' }
+
   error() {
     throw new Error(`Syntax error at ${this.currentChar}`)
   }
@@ -72,7 +74,7 @@ class LexicalAnalyzer {
 
   _id() {
     let res = ''
-    while (this.isAlphaNumeric(this.currentChar)) {
+    while (this.isAlphaNumeric(this.currentChar) || (res.length === 0 && this.isUnderScore(this.currentChar))) {
       res += this.currentChar
       this.nextChar()
     }
@@ -103,8 +105,8 @@ class LexicalAnalyzer {
 
     while (this.currentChar !== null) {
 
-      if (this.isAlphabeticalLetter(this.currentChar)) {
-        const res = this._id()
+      if (this.isAlphabeticalLetter(this.currentChar) || this.isUnderScore(this.currentChar)) {
+        const res = this._id().toUpperCase()
         if (LexicalAnalyzer.ALLOWED_KEYWORDS.includes(res)) {
           return this.createToken(res, res)
         }
