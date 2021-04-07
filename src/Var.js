@@ -1,5 +1,6 @@
 const AST = require('./AST')
 const { getVar, isStored } = require('./ADT')
+const SymbolTableBuilder = require('./SymbolTableBuilder')
 
 class Var extends AST {
 
@@ -12,8 +13,17 @@ class Var extends AST {
     return this.token.value
   }
 
-  accept() {
+  accept(visitor) {
     const varName = this.value
+
+    if (visitor instanceof SymbolTableBuilder) {
+      const hasSymbol = visitor.symtab.has(varName)
+      if (!hasSymbol) {
+        throw new Error(`${varName} is not defined`)
+      }
+      return
+    }
+
     if (!isStored(varName)) {
       throw new Error(`No variable ${varName} defined`)
     }

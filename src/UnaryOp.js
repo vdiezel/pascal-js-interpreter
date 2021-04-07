@@ -1,5 +1,6 @@
 const AST = require('./AST')
 const TokenTypes = require('./TokenTypes')
+const SymbolTableBuilder = require('./SymbolTableBuilder')
 
 class UnaryOp extends AST {
 
@@ -10,6 +11,11 @@ class UnaryOp extends AST {
   }
    
   accept(visitor) {
+    if (visitor instanceof SymbolTableBuilder) {
+      visitor.visit(this.expr)
+      return
+    }
+
     switch(this.op.type) {
       case(TokenTypes.PLUS_OP):
         return visitor.visit(this.expr)

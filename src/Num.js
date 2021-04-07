@@ -1,4 +1,5 @@
 const AST = require('./AST')
+const SymbolTableBuilder = require('./SymbolTableBuilder')
 
 class Num extends AST {
 
@@ -11,7 +12,8 @@ class Num extends AST {
     return this.token.value
   }
 
-  accept() {
+  accept(visitor) {
+    if (visitor instanceof SymbolTableBuilder) return
     return this.value
   }
    

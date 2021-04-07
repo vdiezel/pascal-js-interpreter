@@ -1,5 +1,6 @@
 const AST = require('./AST')
 const TokenTypes = require('./TokenTypes')
+const SymbolTableBuilder = require('./SymbolTableBuilder')
 
 class BinOp extends AST {
 
@@ -11,6 +12,12 @@ class BinOp extends AST {
   }
    
   accept(visitor) {
+    if (visitor instanceof SymbolTableBuilder) {
+      visitor.visit(this.left)
+      visitor.visit(this.right)
+      return
+    }
+
     switch(this.op.type) {
       case(TokenTypes.PLUS_OP):
         return visitor.visit(this.left) + visitor.visit(this.right)

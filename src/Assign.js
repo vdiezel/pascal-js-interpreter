@@ -1,5 +1,6 @@
 const AST = require('./AST')
 const { setVar } = require('./ADT')
+const SymbolTableBuilder = require('./SymbolTableBuilder')
 
 class Assign extends AST {
 
@@ -11,6 +12,17 @@ class Assign extends AST {
   }
    
   accept(visitor) {
+    if (visitor instanceof SymbolTableBuilder) {
+      const varName = this.left.value
+      const hasSymbol = visitor.symtab.has(varName)
+      if (!hasSymbol) {
+        throw new Error(`${varName} is not defined`)
+      }
+
+      visitor.visit(this.right)
+      return
+    }
+
     setVar(this.left.value, visitor.visit(this.right))
   }
 

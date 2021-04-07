@@ -1,4 +1,5 @@
 const NodeVisitor = require('./NodeVisitor')
+const SymbolTableBuilder = require('./SymbolTableBuilder')
 
 class Interpreter extends NodeVisitor {
   
@@ -9,7 +10,9 @@ class Interpreter extends NodeVisitor {
 
   interpret() {
     const tree = this.parser.parse()
-    console.log(tree)
+    const symTableBuilder = new SymbolTableBuilder()
+    symTableBuilder.visit(tree)
+    console.log(symTableBuilder.symtab)
     return this.visit(tree)
   }
 
