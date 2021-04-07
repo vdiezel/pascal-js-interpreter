@@ -17,6 +17,7 @@ module.exports = {
     ASSIGN: 'ASSIGN',
     SEMI: 'SEMI',
     PROGRAM: 'PROGRAM',
+    PROCEDURE: 'PROCEDURE',
     COLON: 'COLON',
     COMMA: 'COMMA',
     ID: 'ID',

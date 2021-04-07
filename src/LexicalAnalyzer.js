@@ -25,6 +25,7 @@ class LexicalAnalyzer {
       TokenTypes.REAL,
       TokenTypes.INTEGER,
       TokenTypes.PROGRAM,
+      TokenTypes.PROCEDURE,
     ]
   }
 

@@ -10,6 +10,7 @@ const Block = require('./Block')
 const VarDecl = require('./VarDecl')
 const Type = require('./Type')
 const Program = require('./Program')
+const ProcedureDecl = require('./ProcedureDecl')
 
 class Parser {
 
@@ -47,6 +48,17 @@ class Parser {
           declarations.push(...this.varDeclaration())
           this.consume(TokenTypes.SEMI)
         }
+      }
+
+      while (this.currentToken.type === TokenTypes.PROCEDURE) {
+        this.consume(TokenTypes.PROCEDURE)
+        const procName = this.currentToken.value
+        this.consume(TokenTypes.ID)
+        this.consume(TokenTypes.SEMI)
+        const block = this.block()
+        const procDecl = new ProcedureDecl(procName, block)
+        declarations.push(procDecl)
+        this.consume(TokenTypes.SEMI)
       }
 
       return declarations
