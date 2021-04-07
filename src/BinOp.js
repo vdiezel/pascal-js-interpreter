@@ -18,8 +18,10 @@ class BinOp extends AST {
         return visitor.visit(this.left) - visitor.visit(this.right)
       case(TokenTypes.MULTIPLY_OP):
         return visitor.visit(this.left) * visitor.visit(this.right)
-      case(TokenTypes.DIVIDE_OP): // no support for floats yet
-        return Math.round(visitor.visit(this.left) / visitor.visit(this.right))
+      case(TokenTypes.DIVIDE_OP):
+        return visitor.visit(this.left) / visitor.visit(this.right)
+      case(TokenTypes.INT_DIVIDE_OP): 
+        return Math.floor(visitor.visit(this.left) / visitor.visit(this.right))
     }
   }
 

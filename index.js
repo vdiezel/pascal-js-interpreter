@@ -2,11 +2,17 @@ const Interpreter = require('./src/Interpreter')
 const LexicalAnalyzer = require('./src/LexicalAnalyzer')
 const Parser = require('./src/Parser')
 const { getTable } = require('./src/ADT')
+const fs = require('fs');
 
-const lex = new LexicalAnalyzer('BEGIN BEGIn numbeR := 2; _a := Number; b := 10 * _a + 10 * number / 4; c := _a - - b END; x := 11; END.')
+fs.readFile('./src/programs/lecture_10.pas', 'utf8', function(err, data) {
+    if (err) throw err;
 
-const parser = new Parser(lex)
-const interpreter = new Interpreter(parser)
-interpreter.interpret()
+    const lex = new LexicalAnalyzer(data)
 
-console.log(getTable())
+    const parser = new Parser(lex)
+    const interpreter = new Interpreter(parser)
+    interpreter.interpret()
+
+    console.log(getTable())
+});
+

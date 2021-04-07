@@ -6,7 +6,10 @@ const Compound = require('./Compound')
 const Assign = require('./Assign')
 const NoOp = require('./NoOp')
 const Var = require('./Var')
-const ADT = require('./ADT')
+const Block = require('./Block')
+const VarDecl = require('./VarDecl')
+const Type = require('./Type')
+const Program = require('./Program')
 
 class Parser {
 
@@ -20,9 +23,60 @@ class Parser {
     }
 
     program() {
-      const node = this.compoundStatement()
+      this.consume(TokenTypes.PROGRAM)
+      const varNode = this.variable()
+      const progName = varNode.value
+      this.consume(TokenTypes.SEMI)
+      const blockNode = this.block()
+      const progNode = new Program(progName, blockNode)
       this.consume(TokenTypes.DOT)
-      return node
+      return progNode
+    }
+
+    block() {
+      const declarations = this.declarations()
+      const compoundStatement = this.compoundStatement()
+      return new Block(declarations, compoundStatement)
+    }
+
+    declarations() {
+      const declarations = []
+      if (this.currentToken.type = TokenTypes.VAR) {
+        this.consume(TokenTypes.VAR)
+        while (this.currentToken.type === TokenTypes.ID) {
+          declarations.push(...this.varDeclaration())
+          this.consume(TokenTypes.SEMI)
+        }
+      }
+
+      return declarations
+    }
+
+    varDeclaration() {
+      const varNodes = [ new Var(this.currentToken) ]
+      this.consume(TokenTypes.ID)
+
+      while (this.currentToken.type === TokenTypes.COMMA) {
+        this.consume(TokenTypes.COMMA)
+        varNodes.push(new Var(this.currentToken))
+        this.consume(TokenTypes.ID)
+      }
+
+      this.consume(TokenTypes.COLON)
+      const typeNode = this.typeSpec()
+
+      return varNodes.map(varNode => new VarDecl(varNode, typeNode))
+    }
+
+    typeSpec() {
+      const token = this.currentToken
+      if (token.type === TokenTypes.INTEGER) {
+        this.consume(TokenTypes.INTEGER)
+      } else {
+        this.consume(TokenTypes.REAL)
+      }
+
+      return new Type(token)
     }
 
     compoundStatement() {
@@ -98,8 +152,12 @@ class Parser {
         this.consume(TokenTypes.MINUS_OP)
         return new UnaryOp(token, this.factor())
       }
-      else if (token.type === TokenTypes.NUMBER) {
-        this.consume(TokenTypes.NUMBER)
+      else if (token.type === TokenTypes.INTEGER_CONST) {
+        this.consume(TokenTypes.INTEGER_CONST)
+        return new Num(token)
+      }
+      else if (token.type === TokenTypes.REAL_CONST) {
+        this.consume(TokenTypes.REAL_CONST)
         return new Num(token)
       }
       else if (token.type === TokenTypes.L_PAREN) {
@@ -114,12 +172,14 @@ class Parser {
 
     term() {
       let node = this.factor()
-      while ([TokenTypes.DIVIDE_OP, TokenTypes.MULTIPLY_OP].includes(this.currentToken.type)) {
+      while ([TokenTypes.DIVIDE_OP, TokenTypes.MULTIPLY_OP, TokenTypes.INT_DIVIDE_OP].includes(this.currentToken.type)) {
         const token = this.currentToken
         if (token.type === TokenTypes.DIVIDE_OP) {
           this.consume(TokenTypes.DIVIDE_OP) 
         } else if (token.type === TokenTypes.MULTIPLY_OP) {
           this.consume(TokenTypes.MULTIPLY_OP) 
+        } else if (token.type === TokenTypes.INT_DIVIDE_OP) {
+          this.consume(TokenTypes.INT_DIVIDE_OP) 
         }
 
         node = new BinOp(node, token, this.factor())

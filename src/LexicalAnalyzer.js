@@ -20,6 +20,11 @@ class LexicalAnalyzer {
     return [
       TokenTypes.BEGIN, 
       TokenTypes.END,
+      TokenTypes.VAR,
+      TokenTypes.DIV,
+      TokenTypes.REAL,
+      TokenTypes.INTEGER,
+      TokenTypes.PROGRAM,
     ]
   }
 
@@ -61,8 +66,20 @@ class LexicalAnalyzer {
     }
   }
 
-  grabFullInteger() {
-    // could be solved much shorter using regex but I don't know about performance here
+  skipComments() {
+    while (this.currentChar !== '}') {
+      this.nextChar()
+    }
+    this.nextChar()
+  }
+
+  skipNewlineCharacters() {
+    while (this.currentChar === '\n' && this.currentChar !== null) {
+      this.nextChar()
+    }
+  }
+
+  grabNumericalSequence() {
     let res = ''
     while (this.isDigitString(this.currentChar)) {
       res += this.currentChar
@@ -70,6 +87,20 @@ class LexicalAnalyzer {
     }
 
     return res
+  }
+
+  number() {
+    let res = this.grabNumericalSequence()
+
+    if (this.currentChar === '.') {
+      res += this.currentChar
+      this.nextChar()
+      res += this.grabNumericalSequence()
+
+      return this.createToken(TokenTypes.REAL_CONST, Number(res))
+    } 
+
+    return this.createToken(TokenTypes.INTEGER_CONST, Number(res))
   }
 
   _id() {
@@ -105,9 +136,30 @@ class LexicalAnalyzer {
 
     while (this.currentChar !== null) {
 
+      if (this.currentChar === ' ') {
+        this.skipWhiteSpaces()
+        continue
+      }
+
+      if (this.currentChar === '\n') {
+        this.skipNewlineCharacters()
+        continue
+      }
+
+      if (this.currentChar === '{') {
+        this.nextChar()
+        this.skipComments()
+        continue
+      }
+
       if (this.isAlphabeticalLetter(this.currentChar) || this.isUnderScore(this.currentChar)) {
         const res = this._id().toUpperCase()
         if (LexicalAnalyzer.ALLOWED_KEYWORDS.includes(res)) {
+
+          if (res === 'DIV') {
+            return this.createToken(TokenTypes.INT_DIVIDE_OP, TokenTypes.INT_DIVIDE_OP)
+          }
+
           return this.createToken(res, res)
         }
 
@@ -130,13 +182,18 @@ class LexicalAnalyzer {
         return this.createToken(TokenTypes.DOT, '.')
       }
 
-      if (this.currentChar === ' ') {
-        this.skipWhiteSpaces()
-        continue
+      if (this.currentChar === ':') {
+        this.nextChar()
+        return this.createToken(TokenTypes.COLON, ':')
+      }
+
+      if (this.currentChar === ',') {
+        this.nextChar()
+        return this.createToken(TokenTypes.COMMA, ':')
       }
 
       if (this.isDigitString(this.currentChar)) 
-        return this.createToken(TokenTypes.NUMBER, Number(this.grabFullInteger()))
+        return this.number()
 
       if (allowedOperators.includes(this.currentChar)) {
         const op = this.currentChar
