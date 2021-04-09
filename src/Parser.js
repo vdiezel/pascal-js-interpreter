@@ -11,6 +11,7 @@ const VarDecl = require('./VarDecl')
 const Type = require('./Type')
 const Program = require('./Program')
 const ProcedureDecl = require('./ProcedureDecl')
+const ProcedureCall = require('./ProcedureCall')
 const Param = require('./Param')
 const { ParserError, ERROR_CODES } = require('./Error')
 
@@ -63,6 +64,29 @@ class Parser {
       const procDecl = new ProcedureDecl(procName, params, block)
       this.consume(TokenTypes.SEMI)
       return procDecl
+    }
+
+    procCallStatement() {
+      const token = this.currentToken
+      const procName = this.currentToken.value
+      this.consume(TokenTypes.ID)
+      this.consume(TokenTypes.L_PAREN)
+      const args = []
+
+      if (this.currentToken.type !== TokenTypes.R_PAREN) {
+        const node = this.expr()
+        args.push(node)
+      }
+
+      while (this.currentToken.type === TokenTypes.COMMA) {
+        this.consume(TokenTypes.COMMA)
+        const node = this.expr()
+        args.push(node)
+      }
+
+      this.consume(TokenTypes.R_PAREN)
+
+      return new ProcedureCall(procName, args, token)
     }
 
     declarations() {
@@ -131,7 +155,7 @@ class Parser {
 
       while (this.currentToken.type === TokenTypes.SEMI) {
         this.consume(TokenTypes.SEMI)
-        paramNodes = [ ...paramNodes, this.formalParameters()]
+        paramNodes = [ ...paramNodes, ...this.formalParameters()]
       }
 
       return paramNodes
@@ -176,6 +200,8 @@ class Parser {
     statement() {
       if (this.currentToken.type === TokenTypes.BEGIN) {
           return this.compoundStatement()
+      } else if (this.currentToken.type === TokenTypes.ID && this.lexer.currentChar === '(') {
+          return this.procCallStatement()
       } else if (this.currentToken.type === TokenTypes.ID) {
           return this.assignmentStatement()
       } else {

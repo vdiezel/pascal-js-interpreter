@@ -83,6 +83,7 @@ class LexicalAnalyzer {
     while (this.currentChar === '\n' && this.currentChar !== null) {
       this.nextChar()
       this.lineno += 1
+      this.column = 0
     }
   }
 
