@@ -14,7 +14,7 @@ class Assign extends AST {
   accept(visitor) {
     if (visitor instanceof SymbolTableBuilder) {
       const varName = this.left.value
-      const hasSymbol = visitor.symtab.has(varName)
+      const hasSymbol = visitor.scope.has(varName)
       if (!hasSymbol) {
         throw new Error(`${varName} is not defined`)
       }

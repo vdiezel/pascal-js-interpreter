@@ -17,7 +17,7 @@ class Var extends AST {
     const varName = this.value
 
     if (visitor instanceof SymbolTableBuilder) {
-      const hasSymbol = visitor.symtab.has(varName)
+      const hasSymbol = visitor.scope.has(varName)
       if (!hasSymbol) {
         throw new Error(`${varName} is not defined`)
       }

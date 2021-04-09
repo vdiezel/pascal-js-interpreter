@@ -1,4 +1,6 @@
 const AST = require('./AST')
+const SymbolTableBuilder = require('./SymbolTableBuilder')
+const ScopedSymbolTable = require('./ScopedSymbolTable')
 
 class Program extends AST {
 
@@ -9,7 +11,15 @@ class Program extends AST {
   }
 
   accept(visitor) {
-    visitor.visit(this.block)
+    if (visitor instanceof SymbolTableBuilder) { 
+      const globalScope = new ScopedSymbolTable('gobal', 1, visitor.scope)
+      globalScope._initBuiltIns()
+      visitor.scope = globalScope
+      visitor.visit(this.block)
+      visitor.scope = visitor.scope.enclosingScope
+    } else {
+      visitor.visit(this.block)
+    }
   }
    
 }

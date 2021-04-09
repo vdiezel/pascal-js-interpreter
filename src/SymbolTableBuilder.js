@@ -1,9 +1,9 @@
-const SymbolTable = require('./SymbolTable')
+const ScopedSymbolTable = require('./ScopedSymbolTable')
 
 class SymbolTableBuilder {
 
   constructor() {
-    this.symtab = new SymbolTable()
+    this.scope = null
   }
 
   visit(node) {

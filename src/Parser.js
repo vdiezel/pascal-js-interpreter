@@ -11,6 +11,7 @@ const VarDecl = require('./VarDecl')
 const Type = require('./Type')
 const Program = require('./Program')
 const ProcedureDecl = require('./ProcedureDecl')
+const Param = require('./Param')
 
 class Parser {
 
@@ -42,27 +43,36 @@ class Parser {
 
     declarations() {
       const declarations = []
-      if (this.currentToken.type = TokenTypes.VAR) {
-        this.consume(TokenTypes.VAR)
-        while (this.currentToken.type === TokenTypes.ID) {
-          declarations.push(...this.varDeclaration())
+      while(true) {
+        if (this.currentToken.type === TokenTypes.VAR) {
+          this.consume(TokenTypes.VAR)
+          while (this.currentToken.type === TokenTypes.ID) {
+            declarations.push(...this.varDeclaration())
+            this.consume(TokenTypes.SEMI)
+          }
+        } else if (this.currentToken.type === TokenTypes.PROCEDURE) {
+          this.consume(TokenTypes.PROCEDURE)
+          const procName = this.currentToken.value
+          this.consume(TokenTypes.ID)
+          let params = []
+
+          if (this.currentToken.type === TokenTypes.L_PAREN) {
+            this.consume(TokenTypes.L_PAREN)
+            params = this.formalParameterList()
+            this.consume(TokenTypes.R_PAREN)
+          }
+
           this.consume(TokenTypes.SEMI)
+          const block = this.block()
+          const procDecl = new ProcedureDecl(procName, params, block)
+          declarations.push(procDecl)
+          this.consume(TokenTypes.SEMI)
+        } else {
+          break
         }
       }
-
-      while (this.currentToken.type === TokenTypes.PROCEDURE) {
-        this.consume(TokenTypes.PROCEDURE)
-        const procName = this.currentToken.value
-        this.consume(TokenTypes.ID)
-        this.consume(TokenTypes.SEMI)
-        const block = this.block()
-        const procDecl = new ProcedureDecl(procName, block)
-        declarations.push(procDecl)
-        this.consume(TokenTypes.SEMI)
-      }
-
       return declarations
-    }
+      }
 
     varDeclaration() {
       const varNodes = [ new Var(this.currentToken) ]
@@ -100,6 +110,41 @@ class Parser {
       compound.children = nodes
 
       return compound
+    }
+
+    formalParameterList() {
+      if (this.currentToken.type !== TokenTypes.ID) {
+        return []
+      }
+
+      let paramNodes = this.formalParameters()
+
+      while (this.currentToken.type === TokenTypes.SEMI) {
+        this.consume(TokenTypes.SEMI)
+        paramNodes = [ ...paramNodes, this.formalParameters()]
+      }
+
+      return paramNodes
+    }
+
+    formalParameters() {
+      const paramNodes = []
+      const paramTokens = [ this.currentToken ]
+      this.consume(TokenTypes.ID)
+      while (this.currentToken.type === TokenTypes.COMMA) {
+        this.consume(TokenTypes.COMMA)
+        paramTokens.push(this.currentToken)
+        this.consume(TokenTypes.ID)
+      }
+
+      this.consume(TokenTypes.COLON)
+      const type = this.typeSpec()
+
+      for (const token of paramTokens) {
+        paramNodes.push(new Param(new Var(token), type))
+      }
+
+      return paramNodes
     }
 
     statementList() {

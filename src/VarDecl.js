@@ -14,10 +14,15 @@ class VarDecl extends AST {
     if (!(visitor instanceof SymbolTableBuilder)) return 
 
     const typeName = this.typeNode.value
-    const typeSymbol = visitor.symtab.lookup(typeName)
+    const typeSymbol = visitor.scope.lookup(typeName)
     const varName = this.varNode.value
     const varSymbol = new VarSymbol(varName, typeSymbol)
-    visitor.symtab.define(varSymbol)
+
+    if (visitor.scope.has(varName, true)) {
+      throw new Error(`${varName} is already defined in this scope ${visitor.scope.scopeName}`)
+    }
+    
+    visitor.scope.define(varSymbol)
   }
    
 }

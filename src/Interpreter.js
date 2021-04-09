@@ -12,7 +12,7 @@ class Interpreter extends NodeVisitor {
     const tree = this.parser.parse()
     const symTableBuilder = new SymbolTableBuilder()
     symTableBuilder.visit(tree)
-    console.log(symTableBuilder.symtab)
+    console.log(symTableBuilder.scope)
     return this.visit(tree)
   }
 

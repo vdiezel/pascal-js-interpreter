@@ -4,7 +4,7 @@ const Parser = require('./src/Parser')
 const { getTable } = require('./src/ADT')
 const fs = require('fs');
 
-fs.readFile('./src/programs/lecture_12.pas', 'utf8', function(err, data) {
+fs.readFile('./src/programs/lecture_14_error.pas', 'utf8', function(err, data) {
     if (err) throw err;
 
     const lex = new LexicalAnalyzer(data)
