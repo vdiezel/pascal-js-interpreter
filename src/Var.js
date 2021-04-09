@@ -1,5 +1,6 @@
 const AST = require('./AST')
-const { getVar, isStored } = require('./ADT')
+const { getVar } = require('./ADT')
+const { SemanticError, ERROR_CODES } = require('./Error')
 const SymbolTableBuilder = require('./SymbolTableBuilder')
 
 class Var extends AST {
@@ -19,13 +20,15 @@ class Var extends AST {
     if (visitor instanceof SymbolTableBuilder) {
       const hasSymbol = visitor.scope.has(varName)
       if (!hasSymbol) {
-        throw new Error(`${varName} is not defined`)
+        const token = this.token
+        const errorCode = ERROR_CODES.ID_NOT_FOUND
+        throw new SemanticError({
+          message: `${errorCode} -> "${token.value}" line ${token.lineno} colum ${token.column}`,
+          token,
+          errorCode,
+        })
       }
       return
-    }
-
-    if (!isStored(varName)) {
-      throw new Error(`No variable ${varName} defined`)
     }
 
     return getVar(varName)

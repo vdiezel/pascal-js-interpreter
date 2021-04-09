@@ -1,3 +1,4 @@
+const { LexerError } = require('./Error')
 const TokenTypes = require('./TokenTypes')
 const allowedOperators = [
   '+',
@@ -14,6 +15,8 @@ class LexicalAnalyzer {
     this.text = text
     this.currentChar = text[0]
     this.pos = 0
+    this.lineno = 1
+    this.column = 1
   }
 
   static get ALLOWED_KEYWORDS() {
@@ -30,7 +33,7 @@ class LexicalAnalyzer {
   }
 
   createToken(type, value) {
-    return { type, value }
+    return { type, value, lineno: this.lineno, column: this.column }
   }
 
   nextChar() {
@@ -39,6 +42,7 @@ class LexicalAnalyzer {
       this.currentChar = null
     } else {
       this.currentChar = this.text[this.pos]
+      this.column += 1
     }
 
   }
@@ -58,7 +62,8 @@ class LexicalAnalyzer {
   isUnderScore(char) { return char === '_' }
 
   error() {
-    throw new Error(`Syntax error at ${this.currentChar}`)
+    const message = `Unexpected character on ${this.currentChar} line: ${this.lineno} column ${this.column}`
+    throw new LexerError({ message })
   }
 
   skipWhiteSpaces() {
@@ -77,6 +82,7 @@ class LexicalAnalyzer {
   skipNewlineCharacters() {
     while (this.currentChar === '\n' && this.currentChar !== null) {
       this.nextChar()
+      this.lineno += 1
     }
   }
 

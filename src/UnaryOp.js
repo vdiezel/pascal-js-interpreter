@@ -12,7 +12,6 @@ class UnaryOp extends AST {
    
   accept(visitor) {
     if (visitor instanceof SymbolTableBuilder) {
-      visitor.visit(this.expr)
       return
     }
 

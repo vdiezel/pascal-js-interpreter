@@ -12,7 +12,7 @@ class Program extends AST {
 
   accept(visitor) {
     if (visitor instanceof SymbolTableBuilder) { 
-      const globalScope = new ScopedSymbolTable('gobal', 1, visitor.scope)
+      const globalScope = new ScopedSymbolTable('global', 1, visitor.scope)
       globalScope._initBuiltIns()
       visitor.scope = globalScope
       visitor.visit(this.block)

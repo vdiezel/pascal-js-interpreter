@@ -18,7 +18,8 @@ class ScopedSymbolTable {
 
   has(name, currentScopeOnly = false) {
     const hasSymbol = name in this._symbols
-    if (currentScopeOnly) return hasSymbol
+    if (currentScopeOnly || this.enclosingScope === null) return hasSymbol
+
     return hasSymbol || this.enclosingScope.has(name)
   }
 

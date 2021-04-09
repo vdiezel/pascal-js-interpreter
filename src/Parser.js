@@ -12,6 +12,7 @@ const Type = require('./Type')
 const Program = require('./Program')
 const ProcedureDecl = require('./ProcedureDecl')
 const Param = require('./Param')
+const { ParserError, ERROR_CODES } = require('./Error')
 
 class Parser {
 
@@ -20,8 +21,12 @@ class Parser {
       this.currentToken = lexer.getNextToken()
     }
 
-    error() {
-      throw new Error(`Parse error at "${this.currentToken.type}" - position ${this.lexer.pos}`)
+    error(errorCode, token) {
+      throw new ParserError({
+         message: `${errorCode} -> "${token.value}" line ${token.lineno} colum ${token.column}`,
+         token,
+         errorCode,
+       })
     }
 
     program() {
@@ -41,38 +46,43 @@ class Parser {
       return new Block(declarations, compoundStatement)
     }
 
+    procedureDeclaration() {
+      this.consume(TokenTypes.PROCEDURE)
+      const procName = this.currentToken.value
+      this.consume(TokenTypes.ID)
+      let params = []
+
+      if (this.currentToken.type === TokenTypes.L_PAREN) {
+        this.consume(TokenTypes.L_PAREN)
+        params = this.formalParameterList()
+        this.consume(TokenTypes.R_PAREN)
+      }
+
+      this.consume(TokenTypes.SEMI)
+      const block = this.block()
+      const procDecl = new ProcedureDecl(procName, params, block)
+      this.consume(TokenTypes.SEMI)
+      return procDecl
+    }
+
     declarations() {
       const declarations = []
-      while(true) {
-        if (this.currentToken.type === TokenTypes.VAR) {
-          this.consume(TokenTypes.VAR)
-          while (this.currentToken.type === TokenTypes.ID) {
-            declarations.push(...this.varDeclaration())
-            this.consume(TokenTypes.SEMI)
-          }
-        } else if (this.currentToken.type === TokenTypes.PROCEDURE) {
-          this.consume(TokenTypes.PROCEDURE)
-          const procName = this.currentToken.value
-          this.consume(TokenTypes.ID)
-          let params = []
 
-          if (this.currentToken.type === TokenTypes.L_PAREN) {
-            this.consume(TokenTypes.L_PAREN)
-            params = this.formalParameterList()
-            this.consume(TokenTypes.R_PAREN)
-          }
-
+      if (this.currentToken.type === TokenTypes.VAR) {
+        this.consume(TokenTypes.VAR)
+        while (this.currentToken.type === TokenTypes.ID) {
+          declarations.push(...this.varDeclaration())
           this.consume(TokenTypes.SEMI)
-          const block = this.block()
-          const procDecl = new ProcedureDecl(procName, params, block)
-          declarations.push(procDecl)
-          this.consume(TokenTypes.SEMI)
-        } else {
-          break
         }
       }
-      return declarations
+
+      while (this.currentToken.type === TokenTypes.PROCEDURE) {
+        const procDecl = this.procedureDeclaration()
+        declarations.push(procDecl)
       }
+
+      return declarations
+    }
 
     varDeclaration() {
       const varNodes = [ new Var(this.currentToken) ]
@@ -194,7 +204,7 @@ class Parser {
       if (this.currentToken.type === tokenType) {
         this.currentToken = this.lexer.getNextToken()
       } else {
-        this.error()
+        this.error(ERROR_CODES.UNEXPECTED_TOKEN, this.currentToken)
       }
     }
 

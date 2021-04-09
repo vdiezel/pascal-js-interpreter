@@ -1,4 +1,5 @@
 const AST = require('./AST')
+const { SemanticError, ERROR_CODES } = require('./Error')
 const SymbolTableBuilder = require('./SymbolTableBuilder')
 const VarSymbol = require('./VarSymbol')
 
@@ -19,7 +20,13 @@ class VarDecl extends AST {
     const varSymbol = new VarSymbol(varName, typeSymbol)
 
     if (visitor.scope.has(varName, true)) {
-      throw new Error(`${varName} is already defined in this scope ${visitor.scope.scopeName}`)
+      const token = this.varNode.token
+      const errorCode = ERROR_CODES.DUPLICATE_ID
+      throw new SemanticError({
+         message: `${errorCode} -> "${token.value}" line ${token.lineno} colum ${token.column}`,
+         token,
+         errorCode,
+      })
     }
     
     visitor.scope.define(varSymbol)
