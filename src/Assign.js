@@ -1,5 +1,4 @@
 const AST = require('./AST')
-const { setVar } = require('./ADT')
 const SymbolTableBuilder = require('./SymbolTableBuilder')
 
 class Assign extends AST {
@@ -12,8 +11,9 @@ class Assign extends AST {
   }
    
   accept(visitor) {
+    const varName = this.left.value
+
     if (visitor instanceof SymbolTableBuilder) {
-      const varName = this.left.value
       const hasSymbol = visitor.scope.has(varName)
       if (!hasSymbol) {
         throw new Error(`${varName} is not defined`)
@@ -23,7 +23,9 @@ class Assign extends AST {
       return
     }
 
-    setVar(this.left.value, visitor.visit(this.right))
+    const varValue = visitor.visit(this.right)
+    const ar = visitor.callStack.peek()
+    ar.set(varName, varValue)
   }
 
 }

@@ -16,6 +16,7 @@ class ProcedureDecl extends AST {
   accept(visitor) {
     if (visitor instanceof SymbolTableBuilder) { 
       const procSymbol = new ProcedureSymbol(this.procName)
+      procSymbol.blockAST = this.blockNode
       visitor.scope.define(procSymbol)
 
       const procScope = new ScopedSymbolTable(this.procName, visitor.scope.scopeLevel + 1, visitor.scope)

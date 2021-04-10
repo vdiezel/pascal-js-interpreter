@@ -1,6 +1,7 @@
 const AST = require('./AST')
 const SymbolTableBuilder = require('./SymbolTableBuilder')
 const ScopedSymbolTable = require('./ScopedSymbolTable')
+const ActivationRecord = require('./ActivationRecord')
 
 class Program extends AST {
 
@@ -18,7 +19,12 @@ class Program extends AST {
       visitor.visit(this.block)
       visitor.scope = visitor.scope.enclosingScope
     } else {
+      const ar = new ActivationRecord(this.name, 'PROGRAM', 1)
+      console.log(ar)
+      visitor.callStack.push(ar)
       visitor.visit(this.block)
+      console.log(ar)
+      visitor.callStack.pop()
     }
   }
    

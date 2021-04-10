@@ -24,7 +24,9 @@ class ScopedSymbolTable {
   }
 
   define(symbol) {
+    symbol.scopeLevel = this.scopeLevel
     this._symbols[symbol.name] = symbol
+
   }
 
   lookup(name, currentScopeOnly = false) {

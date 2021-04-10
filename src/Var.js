@@ -1,5 +1,4 @@
 const AST = require('./AST')
-const { getVar } = require('./ADT')
 const { SemanticError, ERROR_CODES } = require('./Error')
 const SymbolTableBuilder = require('./SymbolTableBuilder')
 
@@ -31,7 +30,8 @@ class Var extends AST {
       return
     }
 
-    return getVar(varName)
+    const ar = visitor.callStack.peek()
+    return ar.get(varName)
   }
    
 }
